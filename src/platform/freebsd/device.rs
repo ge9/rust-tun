@@ -119,7 +119,7 @@ impl Device {
             };
 
             let mtu = config.mtu.unwrap_or(crate::DEFAULT_MTU);
-
+            eprintln!("ddddddddddd{}",tun_name);//OpenBSDでは名前を変更できないっぽいけど、ちゃんとtun0っていう名前は取得できてそう
             Device {
                 tun_name,
                 tun: Tun::new(tun, mtu, false),
@@ -147,6 +147,7 @@ impl Device {
 
     /// Set the IPv4 alias of the device.
     fn set_alias(&mut self, addr: IpAddr, dest: IpAddr, mask: IpAddr) -> Result<()> {
+        return Ok(());
         let IpAddr::V4(addr) = addr else {
             unimplemented!("do not support IPv6 yet")
         };
@@ -165,10 +166,11 @@ impl Device {
                 self.tun_name.len(),
             );
 
-            req.addr = posix::sockaddr_union::from((addr, 0)).addr;
+            req.ifrau.addr = posix::sockaddr_union::from((addr, 0)).addr;
             req.dstaddr = posix::sockaddr_union::from((dest, 0)).addr;
             req.mask = posix::sockaddr_union::from((mask, 0)).addr;
 
+            //this fails (in OpenBSD)
             if let Err(err) = siocaifaddr(ctl.as_raw_fd(), &req) {
                 return Err(io::Error::from(err).into());
             }
@@ -288,9 +290,9 @@ impl AbstractDevice for Device {
                 .map(|c| c as i8)
                 .collect::<_>();
             req.ifr_ifru.ifru_data = tun_name.as_mut_ptr();
-            if let Err(err) = siocsifname(self.ctl.as_raw_fd(), &req) {
-                return Err(io::Error::from(err).into());
-            }
+            // if let Err(err) = siocsifname(self.ctl.as_raw_fd(), &req) {
+            //     return Err(io::Error::from(err).into());
+            // }
 
             self.tun_name = value.to_string();
             Ok(())
@@ -306,9 +308,9 @@ impl AbstractDevice for Device {
             }
 
             if value {
-                req.ifr_ifru.ifru_flags[0] |= (IFF_UP | IFF_RUNNING) as c_short;
+                req.ifr_ifru.ifru_flags |= (IFF_UP | IFF_RUNNING) as c_short;
             } else {
-                req.ifr_ifru.ifru_flags[0] &= !(IFF_UP as c_short);
+                req.ifr_ifru.ifru_flags &= !(IFF_UP as c_short);
             }
 
             if let Err(err) = siocsifflags(self.ctl.as_raw_fd(), &req) {
@@ -421,7 +423,7 @@ impl AbstractDevice for Device {
             }
 
             req.ifr_ifru
-                .ifru_mtu
+                .ifru_metric
                 .try_into()
                 .map_err(|_| Error::TryFromIntError)
         }
@@ -430,7 +432,7 @@ impl AbstractDevice for Device {
     fn set_mtu(&mut self, value: u16) -> Result<()> {
         unsafe {
             let mut req = self.request();
-            req.ifr_ifru.ifru_mtu = value as i32;
+            req.ifr_ifru.ifru_metric = value as i32;
 
             if let Err(err) = siocsifmtu(self.ctl.as_raw_fd(), &req) {
                 return Err(io::Error::from(err).into());

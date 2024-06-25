@@ -28,12 +28,27 @@ pub struct ctl_info {
 #[allow(non_camel_case_types)]
 #[repr(C)]
 #[derive(Copy, Clone)]
+pub union ifrau {
+    pub addr: sockaddr,
+    pub ifrau_align: u32
+}
+
+
+#[allow(non_camel_case_types)]
+#[repr(C)]
+#[derive(Copy, Clone)]
+// pub struct ifaliasreq {
+//     pub ifran: [c_char; IFNAMSIZ],
+//     pub addr: sockaddr,
+//     pub dstaddr: sockaddr,
+//     pub mask: sockaddr,
+//     pub ifra_vhid: c_int,
+// }
 pub struct ifaliasreq {
     pub ifran: [c_char; IFNAMSIZ],
-    pub addr: sockaddr,
+    pub ifrau: ifrau,
     pub dstaddr: sockaddr,
     pub mask: sockaddr,
-    pub ifra_vhid: c_int,
 }
 
 // #[allow(non_camel_case_types)]
@@ -62,14 +77,15 @@ ioctl_readwrite!(siocgifbrdaddr, b'i', 35, ifreq);
 ioctl_write_ptr!(siocsifnetmask, b'i', 22, ifreq);
 ioctl_readwrite!(siocgifnetmask, b'i', 37, ifreq);
 
-ioctl_write_ptr!(siocsifmtu, b'i', 52, ifreq);
-ioctl_readwrite!(siocgifmtu, b'i', 51, ifreq);
+ioctl_write_ptr!(siocsifmtu, b'i', 127, ifreq);
+ioctl_readwrite!(siocgifmtu, b'i', 126, ifreq);
 
-ioctl_write_ptr!(siocaifaddr, b'i', 43, ifaliasreq);
+ioctl_write_ptr!(siocaifaddr, b'i', 26, ifaliasreq);
 ioctl_write_ptr!(siocdifaddr, b'i', 25, ifreq);
 
 ioctl_write_ptr!(siocifcreate, b'i', 122, ifreq);
 
-ioctl_write_ptr!(siocsifphyaddr, b'i', 70, ifaliasreq);
+//ioctl_write_ptr!(siocslifphyaddr, b'i', 74, if_laddrreq);
+//ioctl_write_ptr!(siocglifphyaddr, b'i', 75, if_laddrreq);
 
-ioctl_write_ptr!(siocsifname, b'i', 40, ifreq);
+//ioctl_write_ptr!(siocsifname, b'i', 40, ifreq);

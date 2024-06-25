@@ -39,7 +39,6 @@ fn main_entry(quit: Receiver<()>) -> Result<(), BoxError> {
         .netmask((255, 255, 255, 0))
         .destination((10, 0, 0, 1))
         .up();
-
     #[cfg(target_os = "linux")]
     config.platform_config(|config| {
         config.ensure_root_privileges(true);

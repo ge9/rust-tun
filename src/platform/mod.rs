@@ -27,6 +27,11 @@ pub mod freebsd;
 #[cfg(target_os = "freebsd")]
 pub use self::freebsd::{create, Device, PlatformConfig};
 
+#[cfg(target_os = "openbsd")]
+pub mod freebsd;
+#[cfg(target_os = "openbsd")]
+pub use self::freebsd::{create, Device, PlatformConfig};
+
 #[cfg(target_os = "macos")]
 pub mod macos;
 #[cfg(target_os = "macos")]
